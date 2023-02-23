@@ -9,15 +9,16 @@ public class Hangman {
         Scanner input = new Scanner(System.in);
         ArrayList<String> wordsArray = getStringArray();
         String word = selectRandomWord(wordsArray);
-        int wordIndex = getRandomInt(word.length());
-        char letter = word.charAt(wordIndex);
-        final String modifiedWord = word.replace(letter, '_');
-
-        System.out.println("Guess the word: " + modifiedWord);
-        System.out.println("Guess the missing letter: ");
-        char answer = input.next().charAt(0);
-        isCorrectLetter(letter, answer);
-        System.out.println("The word was: " + word);
+        randomFillWord(word);
+        // int wordIndex = getRandomInt(word.length());
+        // char letter = word.charAt(wordIndex);
+        // final String modifiedWord = word.replace(letter, '_');
+// 
+        // System.out.println("Guess the word: " + modifiedWord);
+        // System.out.println("Guess the missing letter: ");
+        // char answer = input.next().charAt(0);
+        // isCorrectLetter(letter, answer);
+        // System.out.println("The word was: " + word);
     }
 
 
@@ -73,5 +74,17 @@ public class Hangman {
         } else {
             return fileName;
         }
+    }
+
+    static String randomFillWord(String word) {
+        ArrayList<String> wordArray = new ArrayList<String>();
+        int randomIndex = getRandomInt(word.length());
+        
+        for (String letter : word){
+            System.out.println(letter);
+        }
+
+        String newWord = "";
+        return newWord;
     }
 }
