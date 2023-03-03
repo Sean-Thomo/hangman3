@@ -1,160 +1,114 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import java.util.Random;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Random;
-import java.util.Scanner;
 
 public class Hangman {
     public static void main(String[] args) {
-        ArrayList<String> wordsArray = getStringArray();
-        String selectedWord = selectRandomWord(wordsArray);
+        String wordsFile;
+        if (args.length > 0) {
+            wordsFile = args[0];
+        } else {
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Words file? [leave empty to use shortwords.txt]:");
+            wordsFile = scanner.nextLine();
+        }
+
+        if (wordsFile.isBlank()) {
+            wordsFile = "shortwords.txt";
+        }
+
+        ArrayList<String> words = readWordsFile(wordsFile);
+        String selectedWord = selectRandomWord(words);
         String currentAnswer = randomFillWord(selectedWord);
+
         runGameLoop(selectedWord, currentAnswer);
     }
 
-    static void runGameLoop(String word, String answer) {
-        System.out.println("Guess the word: "+answer);
-        int tries = 4;
-
-        while (answer != word) {
-            char guess = getUserInput();
-
-            if (tries == 0) {
-                System.out.println("Sorry, you're out of guesses. The word was: "+guess);
-            } 
-
-            if (isMissingChar(word, answer, guess) == true) {
-                String getAnswer =  doCorrectAnswer(word, answer, guess);
-            } else if (!isMissingChar(word, answer, guess)) {
-                doWrongAnswer(word, tries);
-                tries --;
-                System.out.println("Wrong! Number of guesses left: "+tries);
-            }
-        }
-    }
-
-    static char getUserInput() {
-        Scanner input = new Scanner(System.in);
-        System.out.println("Guess the missing letter: ");
-        return input.nextLine().charAt(0);
-    }
-
-
-    static ArrayList<String> getStringArray() {
+    public static ArrayList<String> readWordsFile(String filename) {
+        ArrayList<String> words = new ArrayList<>();
         try {
-            ArrayList<String> wordsArray = new ArrayList<String>();
-            String fileName = getFileName();
-            File myObj = new File(fileName);
-            Scanner myReader = new Scanner(myObj);
-            while (myReader.hasNextLine()) {
-                String word = myReader.nextLine();
-                wordsArray.add(word);
+            Scanner scanner = new Scanner(new File(filename));
+            while (scanner.hasNextLine()) {
+                String word = scanner.nextLine();
+                words.add(word);
             }
-            myReader.close();
-
-            return wordsArray;
-    
         } catch (FileNotFoundException e) {
-            System.out.println("An error occured");
-            e.printStackTrace();
+            System.out.println("File not found!");
         }
-        return null;
+        return words;
     }
 
-
-    static int getRandomInt(int max){
-        Random num = new Random(); 
-        return num.nextInt((max - 0) + 1) + 0;
+    public static String getUserInput() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Guess the missing letter: ");
+        String guess = scanner.nextLine();
+        return guess;
     }
 
+    public static String askFileName() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Words file? [leave empty to use short_words.txt] : ");
+        String fileName = scanner.nextLine();
+        if (fileName.equals("")) {
+            return "short_words.txt";
+        }
+        return fileName;
+    }
 
-    static String selectRandomWord(ArrayList<String> wordsArray) {
-        int index = getRandomInt(wordsArray.size());
-        final String word = wordsArray.get(index);
+    public static String selectRandomWord(List<String> words) {
+        Random rand = new Random();
+        int randomIndex = rand.nextInt(words.size());
+        String word = words.get(randomIndex).trim();
         return word;
     }
 
-
-    static void isCorrectLetter(char letter, char answer) {
-        if (letter == (char) answer) {
-            System.out.println("Well done! You are awesome!");
-        } else {
-            System.out.println("Wrong! Do better next time.");
-        }
-    }
-
-    static String getFileName() {
-        Scanner input = new Scanner(System.in);
-        System.out.println("Words file? [leave empty to use shortwords.txt]:");
-        String fileName = input.nextLine();
-        if (fileName.isBlank()) {
-            return "shortwords.txt";
-        } else {
-            return fileName;
-        }
-    }
-
-    static String randomFillWord(String word) {
-        int randomIndex = getRandomInt(word.length());
-
-        char[] wordChars = word.toCharArray();
-        char[] maskedChars = new char[wordChars.length];
-
-        for (int i = 0; i < wordChars.length; i++) {
+    public static String randomFillWord(String word) {
+        Random rand = new Random();
+        int randomIndex = rand.nextInt(word.length());
+        StringBuilder sb = new StringBuilder(word.length());
+        for (int i = 0; i < word.length(); i++) {
             if (i == randomIndex) {
-                maskedChars[i] = wordChars[i];
+                sb.append(word.charAt(randomIndex));
             } else {
-                maskedChars[i] = '_';
+                sb.append("_");
             }
         }
-
-        String newWord = new String(maskedChars);
-        return newWord;
+        return sb.toString();
     }
 
-    static Boolean isMissingChar(String originalWord, String answerWord, char guess) {
-        ArrayList<String> listOriginal = new ArrayList<String>(Arrays.asList(originalWord.split("")));
-        ArrayList<String> listAnswer = new ArrayList<String>(Arrays.asList(answerWord.split("")));
-
-        if (listOriginal.contains(Character.toString(guess)) && !listAnswer.contains(Character.toString(guess))) {
-            return true;
-        } else {
-            return false;
-        }
+    public static boolean isMissingChar(String originalWord, String answerWord, char c) {
+        return originalWord.contains(String.valueOf(c)) && !answerWord.contains(String.valueOf(c));
     }
 
-    static String fillInChar(String originalWord, String answerWord, char guess) {
-        char[] originalChars = originalWord.toCharArray();
-        char[] answerChars = answerWord.toCharArray();
-        char[] moreCompleteWord = new char[originalWord.length()];
-
+    public static String fillInChar(String originalWord, String answerWord, char c) {
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < originalWord.length(); i++) {
-            if (guess == originalChars[i] && guess != answerChars[i]) {
-                moreCompleteWord[i] = guess;
-            } else if (answerChars[i] != '_') {
-                moreCompleteWord[i] = answerChars[i];
+            if (originalWord.charAt(i) == c) {
+                sb.append(c);
+            } else if (answerWord.charAt(i) != '_') {
+                sb.append(answerWord.charAt(i));
             } else {
-                moreCompleteWord[i] = '_';
+                sb.append("_");
             }
         }
-
-        String completeString = new String(moreCompleteWord);
-        return completeString;
+        return sb.toString();
     }
 
-    static String doCorrectAnswer(String originalWord, String answer, char guess) {
-        String correctAnswer = fillInChar(originalWord, answer, getUserInput());
-        System.out.println(correctAnswer);
-        return correctAnswer;
+    public static String doCorrectAnswer(String originalWord, String answerWord, char c) {
+        answerWord = fillInChar(originalWord, answerWord, c);
+        System.out.println(answerWord);
+        return answerWord;
     }
 
-    static void doWrongAnswer(String answer, int numberGuesses) {
-        System.out.println("Wrong! Number of guesses left: " + numberGuesses);
-        drawFigure(numberGuesses);
+    public static void doWrongAnswer(int remainingGuesses) {
+        System.out.println("Wrong! Number of guesses left: " + remainingGuesses);
+        drawFigure(remainingGuesses);
     }
 
-    static void drawFigure(int numberGuesses) {
+    public static void drawFigure(int remainingGuesses) {
         String[] stages = {
             "/----\n|\n|\n|\n|\n_______",
             "/----\n|   0\n|\n|\n|\n_______",
@@ -162,18 +116,31 @@ public class Hangman {
             "/----\n|   0\n|  /|\\\n|   |\n|\n_______",
             "/----\n|   0\n|  /|\\\n|   |\n|  / \\\n_______"
         };
-        
-        if (numberGuesses == 4) {
-            System.out.println(stages[0]);
-        } else if (numberGuesses == 3) {
-            System.out.println(stages[1]);
-        } else if (numberGuesses == 2) {
-            System.out.println(stages[2]);
-        } else if (numberGuesses == 1) {
-            System.out.println(stages[3]);
-        } else if (numberGuesses == 0) {
-            System.out.println(stages[4]);
-        }
 
+        System.out.println(stages[4 - remainingGuesses]);
+
+    }
+
+    public static void runGameLoop(String word, String answer) {
+        System.out.println("Guess the word: " + answer);
+        int tries = 4;
+        while (!answer.equals(word)) {
+            String guess = getUserInput();
+            if (tries == 0) {
+                System.out.println("Sorry, you are out of guesses. The word was: " + word);
+                break;
+            }
+            if (guess.equals("quit") || guess.equals("exit")) {
+                System.out.println("Bye!");
+                break;
+            }
+            char c = guess.charAt(0);
+            if (isMissingChar(word, answer, c)) {
+                answer = doCorrectAnswer(word, answer, c);
+            } else {
+                doWrongAnswer(tries);
+                tries--;
+            }
+        }
     }
 }
