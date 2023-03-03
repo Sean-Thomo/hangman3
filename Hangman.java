@@ -128,6 +128,7 @@ public class Hangman {
             String guess = getUserInput();
             if (tries == 0) {
                 System.out.println("Sorry, you are out of guesses. The word was: " + word);
+                drawFigure(tries);
                 break;
             }
             if (guess.equals("quit") || guess.equals("exit")) {
